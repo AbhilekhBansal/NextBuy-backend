@@ -25,7 +25,7 @@ const schema = new mongoose.Schema({
     },
     photo: {
         type: String,
-        required: [true, "Please add a photo"],
+
 
     },
     role: {

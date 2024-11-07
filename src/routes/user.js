@@ -1,8 +1,12 @@
 import express from "express";
-import { newUser } from "../controllers/user.js";
+import { deleteUser, getAllUsers, getUser, newUser } from "../controllers/user.js";
+import { isAdmin } from "../middlewares/auth.js";
 
 const app = express.Router();
 
 app.post("/new", newUser);
+
+app.get("/all", isAdmin, getAllUsers);
+app.route("/:id").get(getUser).delete(isAdmin, deleteUser);
 
 export default app;
