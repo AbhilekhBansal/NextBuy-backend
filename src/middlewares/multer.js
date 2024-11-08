@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         // Set a custom filename for the uploaded file
-        cb(null, path.extname(file.originalname));
+        cb(null, file.originalname);
     }
 });
 

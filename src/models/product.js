@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import validator from 'validator';
 
-const Schema = new mongoose.Schema({
+const schema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, "Please enter name"],
@@ -58,4 +58,4 @@ const Schema = new mongoose.Schema({
 
 }, { timeStamps: true })
 
-export const Product = mongoose.model("Product", Schema);
+export const Product = mongoose.model("Product", schema);

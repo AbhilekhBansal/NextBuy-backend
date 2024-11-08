@@ -22,6 +22,12 @@ app.use('/api/v1/user', userRoutes);
 // product routes
 app.use('/api/v1/product', productRoutes);
 
+app.use("/uploads", express.static("uploads"));
+
+app.use((req, res, next) => {
+    res.status(404).json({ success: false, message: "Route not found" });
+});
+
 // Global Error middleware
 app.use(errorMiddleware)
 

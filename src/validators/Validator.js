@@ -18,5 +18,4 @@ export const productSchema = z.object({
     price: z.number().min(0, "Please enter a valid price"),
     stock: z.number().min(0, "Please enter stock quantity"),
     category: z.string().min(1, "Please enter a category"),
-    photos: z.array(z.string().url("Please enter valid photo URLs")).min(1, "Please provide at least one photo")
 });
