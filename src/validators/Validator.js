@@ -12,10 +12,11 @@ export const userSchema = z.object({
 });
 
 export const productSchema = z.object({
-    name: z.string().min(1, "Please enter product name"),
-    description: z.string().min(1, "Please enter description"),
-    mrp: z.number().min(0, "Please enter a valid MRP"),
-    price: z.number().min(0, "Please enter a valid price"),
-    stock: z.number().min(0, "Please enter stock quantity"),
-    category: z.string().min(1, "Please enter a category"),
+    name: z.string().min(1, "Please enter product name")
+        .regex(/^[a-zA-Z0-9 ]+$/, "Product name should only contain letters, numbers, and spaces").optional(),
+    description: z.string().min(1, "Please enter description").optional(),
+    mrp: z.number().min(0, "Please enter a valid MRP").optional(),
+    price: z.number().min(0, "Please enter a valid price").optional(),
+    stock: z.number().min(0, "Please enter stock quantity").optional(),
+    category: z.string().min(1, "Please enter a category").optional(),
 });

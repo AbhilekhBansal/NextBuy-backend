@@ -7,7 +7,7 @@ const schema = new mongoose.Schema({
         required: [true, "Please enter name"],
         unique: true,
         validate: {
-            validator: (name) => /^[A-Za-z]+$/.test(name),
+            validator: (name) => /^[a-zA-Z0-9 ]+$/.test(name),
             message: "{VALUE} is not a valid name"
         }
     },

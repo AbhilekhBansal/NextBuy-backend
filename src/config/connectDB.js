@@ -1,14 +1,28 @@
 import mongoose from "mongoose";
 
+export const connectBD = () => {
+    mongoose.connect(process.env.MONGO_URI, {
+        dbName: "cluster0", // Specify your actual database name here
+    })
+        .then((c) => {
+            console.log(`DB connected to ${c.connection.host}`);
+        })
+        .catch((e) => {
+            console.log("Database connection error:", e);
+        });
+};
 
-mongoose.connect(process.env.MONGO_URI, {
-    dbName: "cluster0",
-}).then((c) => {
-    console.log(`DB connected to ${c.connection.host}`)
-}).catch((e) => {
-    console.log(e);
+
+mongoose.connection.on("connected", () => {
+    console.info("Connected to MongoDB");
 });
 
-export const connectBD = () => {
 
-}
+mongoose.connection.on("error", (error) => {
+    console.error(`Error in MongoDb connection: ${error}`);
+    mongoose.disconnect();
+});
+
+mongoose.connection.on("disconnected", () => {
+    console.error(`MongoDB disconnected!`);
+});

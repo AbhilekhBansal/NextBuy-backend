@@ -1,5 +1,6 @@
 import multer from 'multer';
-import path from 'path';
+import path, { extname } from 'path';
+import { v4 as uuidv4 } from "uuid";
 
 // Set the storage engine
 const storage = multer.diskStorage({
@@ -8,8 +9,9 @@ const storage = multer.diskStorage({
         cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
+        const uid = uuidv4();
         // Set a custom filename for the uploaded file
-        cb(null, file.originalname);
+        cb(null, uid + extname(file.originalname));
     }
 });
 
