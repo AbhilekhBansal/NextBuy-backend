@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'path';
 import { cleanupFiles } from '../utils/helper.js';
 import ErrorHandler from '../utils/utility-class.js';
+import { myCache } from '../app.js';
 
 
 export const newProduct = TryCatch(async (req, res, next) => {
@@ -36,7 +37,7 @@ export const newProduct = TryCatch(async (req, res, next) => {
             const photos = req.files.map(file => file.path); // Store file paths
 
             // Create a new product in the database
-            const newProduct = await Product.create({
+            await Product.create({
                 name,
                 description,
                 mrp,
@@ -45,11 +46,12 @@ export const newProduct = TryCatch(async (req, res, next) => {
                 category: category.toLowerCase(),
                 photos
             });
+            const products = await Product.find({});
 
             res.status(201).json({
                 success: true,
                 message: 'Product created successfully',
-                data: newProduct
+                data: products
             });
         } catch (validationError) {
             next(validationError);
@@ -58,12 +60,19 @@ export const newProduct = TryCatch(async (req, res, next) => {
 });
 
 export const getLatestProduct = TryCatch(async (req, res, next) => {
+    let products;
 
-    const latestProduct = await Product.find({}).sort({ createdAt: -1 }).limit(5);
+    // Check if the latest products are cached
+    if (myCache.has("latestProduct")) {
+        products = JSON.parse(myCache.get("latestProduct"));
+    } else {
+        products = await Product.find({}).sort({ createdAt: -1 }).limit(5);
+        myCache.set("latestProduct", JSON.stringify(products));
+    }
 
     return res.status(200).json({
         success: true,
-        Products: latestProduct
+        latestProduct: products
     })
 });
 
@@ -153,4 +162,49 @@ export const updateProduct = TryCatch(async (req, res, next) => {
     });
 });
 
+export const deleteProduct = TryCatch(async (req, res, next) => {
+    const product = await Product.findById(req.params.id);
 
+    if (!product) return next(new ErrorHandler("Product not found", 404));
+    cleanupFiles(product.photos.map(photoPath => ({ path: photoPath })));
+    await product.deleteOne();
+    return res.status(200).json({
+        success: true,
+        message: 'Product deleted successfully',
+    })
+
+});
+
+export const getAllProduct = TryCatch(async (req, res, next) => {
+
+    const { search, category, sort, price } = req.query;
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = Number(page - 1) * limit;
+
+    const baseQuery = {};
+
+    if (search) {
+        baseQuery.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } }
+        ];
+    }
+    if (category) {
+        baseQuery.category = category.toLowerCase();
+    }
+    if (price) {
+        baseQuery.price = { $lt: parseFloat(price) };
+    }
+
+    const productPromise = Product.find(baseQuery).sort(sort && { name: sort === "asc" ? 1 : -1 }).limit(limit).skip(skip);
+
+    const [products, filteredProducts] = await Promise.all([productPromise, Product.find(baseQuery)]);
+
+    const totalPages = Math.ceil(filteredProducts.length / limit);
+    return res.status(200).json({
+        success: true,
+        Products: products,
+        totalPages: totalPages,
+    })
+});
