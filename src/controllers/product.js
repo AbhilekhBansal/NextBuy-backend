@@ -8,56 +8,8 @@ import { cleanupFiles } from '../utils/helper.js';
 import ErrorHandler from '../utils/utility-class.js';
 import { myCache } from '../app.js';
 
+// revidates the product data on new , update, delete and new order
 
-export const newProduct = TryCatch(async (req, res, next) => {
-
-    upload.array('photos', 10)(req, res, async (err) => {
-        if (err) {
-            return next(err);
-        }
-
-        req.body.photos = req.files ? req.files.map(file => file.path) : [];
-
-        req.body.mrp = parseFloat(req.body.mrp);
-        req.body.price = parseFloat(req.body.price);
-        req.body.stock = parseInt(req.body.stock, 10);
-
-
-        try {
-            const validatedData = productSchema.parse(req.body);
-            // Check if photos are uploaded
-            if (!req.files || req.files.length === 0) {
-                cleanupFiles(req.files); // Delete files if validation fails
-                return res.status(400).json({
-                    success: false,
-                    errors: [{ field: "photos", message: "Please upload at least one photo" }],
-                });
-            }
-            const { name, description, mrp, price, stock, category } = validatedData;
-            const photos = req.files.map(file => file.path); // Store file paths
-
-            // Create a new product in the database
-            await Product.create({
-                name,
-                description,
-                mrp,
-                price,
-                stock,
-                category: category.toLowerCase(),
-                photos
-            });
-            const products = await Product.find({});
-
-            res.status(201).json({
-                success: true,
-                message: 'Product created successfully',
-                data: products
-            });
-        } catch (validationError) {
-            next(validationError);
-        }
-    });
-});
 
 export const getLatestProduct = TryCatch(async (req, res, next) => {
     let products;
@@ -96,22 +48,89 @@ export const getCategories = TryCatch(async (req, res, next) => {
 
 export const getAdminProducts = TryCatch(async (req, res, next) => {
 
-    const latestProduct = await Product.find({});
+    let products;
+    // Check if the latest products are cached
+    if (myCache.has("All-Products")) {
+        products = JSON.parse(myCache.get("All-Products"));
+    } else {
+        products = await Product.find({});
+        myCache.set("All-Products", JSON.stringify(products));
+    }
 
     return res.status(200).json({
         success: true,
-        Products: latestProduct
+        Products: products
     })
 });
-export const getProductDetails = TryCatch(async (req, res, next) => {
 
-    const ProductDetails = await Product.findById(req.params.id);
-    if (!ProductDetails) return next(new ErrorHandler("Invalid Product ID", 404));
+export const getProductDetails = TryCatch(async (req, res, next) => {
+    const id = req.params.id;
+    let ProductDetails;
+
+    // Check if the product details are cached
+    if (myCache.has(`Product-${id}`)) {
+        ProductDetails = JSON.parse(myCache.get(`Product-${id}`));
+    } else {
+        ProductDetails = await Product.findById(id);
+        if (!ProductDetails) return next(new ErrorHandler("Invalid Product ID", 404));
+        myCache.set(`Product-${id}`, JSON.stringify(ProductDetails));
+    }
 
     return res.status(200).json({
         success: true,
         ProductDetails
     })
+});
+
+export const newProduct = TryCatch(async (req, res, next) => {
+
+    upload.array('photos', 10)(req, res, async (err) => {
+        if (err) {
+            return next(err);
+        }
+
+        req.body.photos = req.files ? req.files.map(file => file.path) : [];
+
+        req.body.mrp = parseFloat(req.body.mrp);
+        req.body.price = parseFloat(req.body.price);
+        req.body.stock = parseInt(req.body.stock, 10);
+
+
+        try {
+            const validatedData = productSchema.parse(req.body);
+            // Check if photos are uploaded
+            if (!req.files || req.files.length === 0) {
+                cleanupFiles(req.files); // Delete files if validation fails
+                return res.status(400).json({
+                    success: false,
+                    errors: [{ field: "photos", message: "Please upload at least one photo" }],
+                });
+            }
+            const { name, description, mrp, price, stock, category } = validatedData;
+            const photos = req.files.map(file => file.path); // Store file paths
+
+            // Create a new product in the database
+            await Product.create({
+                name,
+                description,
+                mrp,
+                price,
+                stock,
+                category: category.toLowerCase(),
+                photos
+            });
+            await invalidateCache({ product: true });
+            const products = await Product.find({});
+
+            res.status(201).json({
+                success: true,
+                message: 'Product created successfully',
+                data: products
+            });
+        } catch (validationError) {
+            next(validationError);
+        }
+    });
 });
 
 export const updateProduct = TryCatch(async (req, res, next) => {
@@ -156,6 +175,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
             if (validatedData.photos && validatedData.photos.length > 0) existingProduct.photos = validatedData.photos;
 
             await existingProduct.save();
+            await invalidateCache({ product: true });
 
             res.status(200).json({
                 success: true,
@@ -175,6 +195,7 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
     if (!product) return next(new ErrorHandler("Product not found", 404));
     cleanupFiles(product.photos.map(photoPath => ({ path: photoPath })));
     await product.deleteOne();
+    await invalidateCache({ product: true });
     return res.status(200).json({
         success: true,
         message: 'Product deleted successfully',
