@@ -77,12 +77,19 @@ export const getLatestProduct = TryCatch(async (req, res, next) => {
 });
 
 export const getCategories = TryCatch(async (req, res, next) => {
+    let categories;
 
-    const Categories = await Product.distinct('category');
+    // Check if the categories are cached
+    if (myCache.has("categories")) {
+        categories = JSON.parse(myCache.get("categories"));
+    } else {
+        categories = await Product.distinct('category');
+        myCache.set("categories", JSON.stringify(categories));
+    }
 
     return res.status(200).json({
         success: true,
-        Categories
+        categories
     })
 });
 
