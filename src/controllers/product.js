@@ -2,8 +2,6 @@ import { TryCatch } from '../middlewares/error.js';
 import upload from '../middlewares/multer.js';
 import { productSchema } from '../validators/Validator.js';
 import { Product } from '../models/product.js';
-import fs from 'fs';
-import path from 'path';
 import { cleanupFiles } from '../utils/helper.js';
 import ErrorHandler from '../utils/utility-class.js';
 import { myCache } from '../app.js';
@@ -59,7 +57,7 @@ export const getAdminProducts = TryCatch(async (req, res, next) => {
 
     return res.status(200).json({
         success: true,
-        Products: products
+        products
     })
 });
 

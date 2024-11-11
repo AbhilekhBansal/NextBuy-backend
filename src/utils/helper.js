@@ -35,3 +35,15 @@ export const invalidateCache = async (product, admin, order) => {
     //     myCache.del();
     // }
 };
+
+export const reduceStock = async (orderItems) => {
+    orderItems.forEach((order) => {
+        const product = Product.findById(order.productId);
+        if (product) {
+            product.stock -= order.quantity;
+            product.save();
+        } else {
+            throw new Error("Product not found");
+        }
+    })
+};
