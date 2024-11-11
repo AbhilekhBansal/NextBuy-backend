@@ -1,6 +1,5 @@
 import express from "express";
 import { isAdmin } from "../middlewares/auth.js";
-import upload from "../middlewares/multer.js";
 import { deleteProduct, getAdminProducts, getAllProduct, getCategories, getLatestProduct, getProductDetails, newProduct, updateProduct } from "../controllers/product.js";
 
 const app = express.Router();

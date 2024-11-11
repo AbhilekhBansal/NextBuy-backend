@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import validator from 'validator';
+import { number } from "zod";
 
 const schema = new mongoose.Schema({
     shippingInfo: {
@@ -21,10 +22,10 @@ const schema = new mongoose.Schema({
             required: [true, "Please enter country"],
         },
         zip: {
-            type: String,
+            type: Number,
             required: [true, "Please enter zip code"],
             validate: {
-                validator: (zip) => /^[0-9]{5}$/.test(zip),
+                validator: (zip) => /^[0-9]{6}$/.test(zip),
                 message: "{VALUE} is not a valid zip code"
             }
         }
@@ -65,12 +66,14 @@ const schema = new mongoose.Schema({
             photo: String,
             price: Number,
             quantity: Number,
-            total: Number,
-            product: { type: mongoose.Types.ObjectId, ref: "Product" }
+            productId: {
+                type: mongoose.Types.ObjectId,
+                ref: "Product",
+            }
         }
 
 
     ]
-}, { timeStamps: true })
+}, { timestamps: true })
 
 export const Order = mongoose.model("Order", schema);

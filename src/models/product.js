@@ -56,6 +56,6 @@ const schema = new mongoose.Schema({
         trim: true,
     }
 
-}, { timeStamps: true })
+}, { timestamps: true })
 
 export const Product = mongoose.model("Product", schema);

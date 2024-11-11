@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Product } from '../models/product.js';
+import { myCache } from '../app.js';
 
 // Helper function to delete files
 export const cleanupFiles = (files) => {
@@ -37,13 +38,13 @@ export const invalidateCache = async (product, admin, order) => {
 };
 
 export const reduceStock = async (orderItems) => {
-    orderItems.forEach((order) => {
-        const product = Product.findById(order.productId);
+    for (const order of orderItems) {
+        const product = await Product.findById(order.productId);
         if (product) {
             product.stock -= order.quantity;
-            product.save();
+            await product.save();
         } else {
             throw new Error("Product not found");
         }
-    })
+    }
 };

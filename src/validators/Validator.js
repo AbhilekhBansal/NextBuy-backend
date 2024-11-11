@@ -20,3 +20,29 @@ export const productSchema = z.object({
     stock: z.number().min(0, "Please enter stock quantity").optional(),
     category: z.string().min(1, "Please enter a category").optional(),
 });
+
+export const orderSchema = z.object({
+    shippingInfo: z.object({
+        street: z.string().min(1, "Please enter shipping address"),
+        city: z.string().min(1, "Please enter city"),
+        state: z.string().min(1, "Please enter state"),
+        country: z.string().min(1, "Please enter country"),
+        zip: z.string()
+            .regex(/^[0-9]{6}$/, { message: "Zip code must be a 6-digit number" }),
+    }),
+    user: z.string().min(1, "User ID is required"),
+    subtotal: z.number({ required_error: "Subtotal is required" }),
+    tax: z.number({ required_error: "Tax is required" }).optional(),
+    shippingCharges: z.number({ required_error: "Shipping charges are required" }).optional(),
+    discount: z.number({ required_error: "Discount is required" }).optional(),
+    total: z.number({ required_error: "Total is required" }),
+    orderItems: z.array(
+        z.object({
+            name: z.string(),
+            photo: z.string().optional(),
+            price: z.number(),
+            quantity: z.number().int(),
+            productId: z.string().min(1, "Product ID is required"),
+        })
+    ).nonempty("Order items cannot be empty"),
+});

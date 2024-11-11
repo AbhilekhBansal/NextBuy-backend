@@ -7,6 +7,7 @@ import NodeCache from "node-cache";
 //importing routes 
 import userRoutes from './routes/user.js';
 import productRoutes from './routes/product.js';
+import orderRoutes from './routes/order.js';
 
 const port = process.env.PORT || 8000;
 connectBD();
@@ -18,12 +19,15 @@ app.use(json())
 
 // Routes 
 app.get('/', (req, res) => {
+    myCache.flushAll();
     res.send('Server is live on /api/v1/');
 });
 // user routes
 app.use('/api/v1/user', userRoutes);
 // product routes
 app.use('/api/v1/product', productRoutes);
+// order routes
+app.use('/api/v1/order', orderRoutes);
 
 app.use("/uploads", express.static("uploads"));
 

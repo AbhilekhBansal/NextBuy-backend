@@ -2,7 +2,7 @@ import { TryCatch } from '../middlewares/error.js';
 import upload from '../middlewares/multer.js';
 import { productSchema } from '../validators/Validator.js';
 import { Product } from '../models/product.js';
-import { cleanupFiles } from '../utils/helper.js';
+import { cleanupFiles, invalidateCache } from '../utils/helper.js';
 import ErrorHandler from '../utils/utility-class.js';
 import { myCache } from '../app.js';
 
