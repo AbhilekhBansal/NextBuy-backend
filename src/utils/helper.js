@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Product } from '../models/product.js';
 import { myCache } from '../app.js';
+import { Order } from '../models/order.js';
 
 // Helper function to delete files
 export const cleanupFiles = (files) => {
@@ -16,21 +17,19 @@ export const cleanupFiles = (files) => {
     }
 };
 
-export const invalidateCache = async (product, admin, order) => {
+export const invalidateCache = async (product, admin, order, userId, orderId, productId) => {
     if (product) {
         const productKeys = ["latestProduct", "categories", "All-Products"];
-
-        const productIds = await Product.find({}).select("_id");
-        productIds.forEach(e => {
-            productKeys.push(`prodect-${e._id}`);
-        })
+        if (typeof productId === "string") productKeys.push(`prodect-${productId}`);
+        if (typeof productId === "object") productId.forEach(key => productKeys.push(`prodect-${productId}`))
 
         myCache.del(productKeys);
     }
-    // if (order) {
-    //     const orderKeys = [];
-    //     myCache.del();
-    // }
+    if (order) {
+        const orderKeys = ["all-orders", `my-Orders-${userId}`, `order-${orderId}`];
+
+        myCache.del(orderKeys);
+    }
     // if (admin) {
     //     const adminKeys = [];
     //     myCache.del();

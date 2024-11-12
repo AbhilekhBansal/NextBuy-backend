@@ -20,6 +20,7 @@ export const errorMiddleware = (err, req, res, next) => {
             message: `Duplicate key error: ${Object.keys(err.keyValue).join(", ")} already exists.`,
         });
     }
+    if (err.name === "CastError") err.message = "Invalid ID";
 
     // General error handling
     return res.status(err.statusCode || 500).json({

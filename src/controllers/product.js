@@ -173,7 +173,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
             if (validatedData.photos && validatedData.photos.length > 0) existingProduct.photos = validatedData.photos;
 
             await existingProduct.save();
-            await invalidateCache({ product: true });
+            await invalidateCache({ product: true, productId: existingProduct._id });
 
             res.status(200).json({
                 success: true,
@@ -193,7 +193,7 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
     if (!product) return next(new ErrorHandler("Product not found", 404));
     cleanupFiles(product.photos.map(photoPath => ({ path: photoPath })));
     await product.deleteOne();
-    await invalidateCache({ product: true });
+    await invalidateCache({ product: true, productId: product._id });
     return res.status(200).json({
         success: true,
         message: 'Product deleted successfully',
