@@ -19,6 +19,7 @@ export const productSchema = z.object({
     price: z.number().min(0, "Please enter a valid price").optional(),
     stock: z.number().min(0, "Please enter stock quantity").optional(),
     category: z.string().min(1, "Please enter a category").optional(),
+    sizes: z.record(z.string(), z.number()).optional()
 });
 
 export const orderSchema = z.object({

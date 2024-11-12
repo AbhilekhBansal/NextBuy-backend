@@ -44,9 +44,11 @@ const schema = new mongoose.Schema({
     },
     stock: {
         type: Number,
-        required: [true, "Please enter stock"],
+        required: false, // Make it optional
         validate: {
-            validator: (stock) => stock >= 0,
+            validator: function (stock) {
+                return stock === undefined || stock >= 0; // Ensure it's either undefined or a valid number
+            },
             message: "{VALUE} is not a valid stock"
         }
     },
@@ -54,8 +56,11 @@ const schema = new mongoose.Schema({
         type: String,
         required: [true, "Please enter category"],
         trim: true,
+    },
+    sizes: {
+        type: Object,
+        required: false
     }
-
 }, { timestamps: true })
 
 export const Product = mongoose.model("Product", schema);

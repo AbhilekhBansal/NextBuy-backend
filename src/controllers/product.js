@@ -80,34 +80,152 @@ export const getProductDetails = TryCatch(async (req, res, next) => {
     })
 });
 
-export const newProduct = TryCatch(async (req, res, next) => {
+// export const newProduct = TryCatch(async (req, res, next) => {
 
+//     upload.array('photos', 10)(req, res, async (err) => {
+//         if (err) {
+//             return next(err);
+//         }
+
+//         req.body.photos = req.files ? req.files.map(file => file.path) : [];
+
+//         req.body.mrp = parseFloat(req.body.mrp);
+//         req.body.price = parseFloat(req.body.price);
+//         req.body.stock = parseInt(req.body.stock, 10);
+
+
+//         try {
+//             const validatedData = productSchema.parse(req.body);
+//             // Check if photos are uploaded
+//             if (!req.files || req.files.length === 0) {
+//                 cleanupFiles(req.files); // Delete files if validation fails
+//                 return res.status(400).json({
+//                     success: false,
+//                     errors: [{ field: "photos", message: "Please upload at least one photo" }],
+//                 });
+//             }
+//             const { name, description, mrp, price, stock, category } = validatedData;
+//             const photos = req.files.map(file => file.path); // Store file paths
+
+//             // Create a new product in the database
+//             await Product.create({
+//                 name,
+//                 description,
+//                 mrp,
+//                 price,
+//                 stock,
+//                 category: category.toLowerCase(),
+//                 photos
+//             });
+//             await invalidateCache({ product: true });
+//             const products = await Product.find({});
+
+//             res.status(201).json({
+//                 success: true,
+//                 message: 'Product created successfully',
+//                 data: products
+//             });
+//         } catch (validationError) {
+//             next(validationError);
+//         }
+//     });
+// });
+
+// export const updateProduct = TryCatch(async (req, res, next) => {
+
+//     const existingProduct = await Product.findById(req.params.id);
+//     if (!existingProduct) return next(new ErrorHandler("Invalid Id", 400));
+
+//     const fieldsToUpdate = ["name", "description", "mrp", "price", "stock", "category", "photos"];
+//     const hasUpdates = fieldsToUpdate.some(field => req.body[field] || req.files?.length);
+
+//     if (!hasUpdates) {
+//         return res.status(400).json({
+//             success: false,
+//             message: "At least one field is required for update",
+//         });
+//     }
+
+//     upload.array('photos', 10)(req, res, async (err) => {
+//         if (err) {
+//             return next(err);
+//         }
+
+//         req.body.photos = req.files ? req.files.map(file => file.path) : [];
+//         req.body.mrp = req.body.mrp ? parseFloat(req.body.mrp) : undefined;
+//         req.body.price = req.body.price ? parseFloat(req.body.price) : undefined;
+//         req.body.stock = req.body.stock ? parseInt(req.body.stock, 10) : undefined;
+
+//         try {
+//             const validatedData = productSchema.parse(req.body);
+
+//             if (req.files && req.files.length > 0) {
+//                 cleanupFiles(existingProduct.photos.map(photoPath => ({ path: photoPath })));
+//                 existingProduct.photos = req.body.photos;
+//             }
+
+//             if (validatedData.name !== undefined) existingProduct.name = validatedData.name;
+//             if (validatedData.description !== undefined) existingProduct.description = validatedData.description;
+//             if (validatedData.mrp !== undefined) existingProduct.mrp = validatedData.mrp;
+//             if (validatedData.price !== undefined) existingProduct.price = validatedData.price;
+//             if (validatedData.stock !== undefined) existingProduct.stock = validatedData.stock;
+//             if (validatedData.category !== undefined) existingProduct.category = validatedData.category.toLowerCase();
+//             if (validatedData.photos && validatedData.photos.length > 0) existingProduct.photos = validatedData.photos;
+
+//             await existingProduct.save();
+//             await invalidateCache({ product: true, productId: existingProduct._id });
+
+//             res.status(200).json({
+//                 success: true,
+//                 message: 'Product updated successfully',
+//                 data: existingProduct
+//             });
+//         } catch (validationError) {
+//             cleanupFiles(req.files); // Delete files if a validation error occurs
+//             next(validationError);
+//         }
+//     });
+// });
+
+// Creating a new product
+export const newProduct = TryCatch(async (req, res, next) => {
     upload.array('photos', 10)(req, res, async (err) => {
         if (err) {
             return next(err);
         }
 
         req.body.photos = req.files ? req.files.map(file => file.path) : [];
-
         req.body.mrp = parseFloat(req.body.mrp);
         req.body.price = parseFloat(req.body.price);
-        req.body.stock = parseInt(req.body.stock, 10);
+        req.body.stock = parseInt(req.body.stock, 10) || 0;
 
+        // Handle `sizes` if provided as an object
+        if (req.body.sizes && typeof req.body.sizes === 'string') {
+            req.body.sizes = JSON.parse(req.body.sizes);
+        }
+
+        // Ensure sizes are numbers
+        if (req.body.sizes && typeof req.body.sizes === 'object') {
+            for (let key in req.body.sizes) {
+                req.body.sizes[key] = Number(req.body.sizes[key]);
+            }
+        }
 
         try {
             const validatedData = productSchema.parse(req.body);
-            // Check if photos are uploaded
+
+            // Validate photos
             if (!req.files || req.files.length === 0) {
-                cleanupFiles(req.files); // Delete files if validation fails
+                cleanupFiles(req.files);
                 return res.status(400).json({
                     success: false,
                     errors: [{ field: "photos", message: "Please upload at least one photo" }],
                 });
             }
-            const { name, description, mrp, price, stock, category } = validatedData;
-            const photos = req.files.map(file => file.path); // Store file paths
 
-            // Create a new product in the database
+            const { name, description, mrp, price, stock, category, sizes } = validatedData;
+            const photos = req.files.map(file => file.path);
+
             await Product.create({
                 name,
                 description,
@@ -115,15 +233,15 @@ export const newProduct = TryCatch(async (req, res, next) => {
                 price,
                 stock,
                 category: category.toLowerCase(),
-                photos
+                photos,
+                sizes
             });
+
             await invalidateCache({ product: true });
-            const products = await Product.find({});
 
             res.status(201).json({
                 success: true,
                 message: 'Product created successfully',
-                data: products
             });
         } catch (validationError) {
             next(validationError);
@@ -131,12 +249,12 @@ export const newProduct = TryCatch(async (req, res, next) => {
     });
 });
 
+// Updating an existing product
 export const updateProduct = TryCatch(async (req, res, next) => {
-
     const existingProduct = await Product.findById(req.params.id);
     if (!existingProduct) return next(new ErrorHandler("Invalid Id", 400));
 
-    const fieldsToUpdate = ["name", "description", "mrp", "price", "stock", "category", "photos"];
+    const fieldsToUpdate = ["name", "description", "mrp", "price", "stock", "category", "photos", "sizes"];
     const hasUpdates = fieldsToUpdate.some(field => req.body[field] || req.files?.length);
 
     if (!hasUpdates) {
@@ -156,6 +274,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
         req.body.price = req.body.price ? parseFloat(req.body.price) : undefined;
         req.body.stock = req.body.stock ? parseInt(req.body.stock, 10) : undefined;
 
+
         try {
             const validatedData = productSchema.parse(req.body);
 
@@ -164,13 +283,10 @@ export const updateProduct = TryCatch(async (req, res, next) => {
                 existingProduct.photos = req.body.photos;
             }
 
-            if (validatedData.name !== undefined) existingProduct.name = validatedData.name;
-            if (validatedData.description !== undefined) existingProduct.description = validatedData.description;
-            if (validatedData.mrp !== undefined) existingProduct.mrp = validatedData.mrp;
-            if (validatedData.price !== undefined) existingProduct.price = validatedData.price;
-            if (validatedData.stock !== undefined) existingProduct.stock = validatedData.stock;
-            if (validatedData.category !== undefined) existingProduct.category = validatedData.category.toLowerCase();
-            if (validatedData.photos && validatedData.photos.length > 0) existingProduct.photos = validatedData.photos;
+            // Update product fields
+            Object.keys(validatedData).forEach(key => {
+                if (validatedData[key] !== undefined) existingProduct[key] = validatedData[key];
+            });
 
             await existingProduct.save();
             await invalidateCache({ product: true, productId: existingProduct._id });
@@ -181,11 +297,12 @@ export const updateProduct = TryCatch(async (req, res, next) => {
                 data: existingProduct
             });
         } catch (validationError) {
-            cleanupFiles(req.files); // Delete files if a validation error occurs
+            cleanupFiles(req.files);
             next(validationError);
         }
     });
 });
+
 
 export const deleteProduct = TryCatch(async (req, res, next) => {
     const product = await Product.findById(req.params.id);
