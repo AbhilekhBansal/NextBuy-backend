@@ -8,6 +8,7 @@ import NodeCache from "node-cache";
 import userRoutes from './routes/user.js';
 import productRoutes from './routes/product.js';
 import orderRoutes from './routes/order.js';
+import paymentRoutes from './routes/payment.js';
 
 const port = process.env.PORT || 8000;
 connectBD();
@@ -28,6 +29,8 @@ app.use('/api/v1/user', userRoutes);
 app.use('/api/v1/product', productRoutes);
 // order routes
 app.use('/api/v1/order', orderRoutes);
+// payment routes
+app.use('/api/v1/payment', paymentRoutes);
 
 app.use("/uploads", express.static("uploads"));
 

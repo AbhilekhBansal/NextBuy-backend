@@ -46,3 +46,17 @@ export const orderSchema = z.object({
         })
     ).nonempty("Order items cannot be empty"),
 });
+
+
+export const couponSchema = z.object({
+    coupon: z
+        .string({ required_error: "Please enter the coupon code" })
+        .min(4, { message: "Coupon code must be at least 4 characters long" })
+        .max(20, { message: "Coupon code must be at most 20 characters long" })
+    ,
+    amount: z
+        .number({ required_error: "Please enter an amount" })
+        .positive("Amount must be positive")
+        .min(1, { message: "Amount must be at least 1" })
+        .max(10000, { message: "Amount cannot exceed 10000" }),
+});

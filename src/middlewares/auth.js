@@ -12,7 +12,7 @@ export const isAdmin = TryCatch(async (req, res, next) => {
     if (!user) return next(new ErrorHandler("Invalid Id, please try again", 401));
 
 
-    if (user.role !== "Admin") return next(new ErrorHandler("User don't have access to this route", 401));
+    if (user.role !== "Admin") return next(new ErrorHandler("User don't have access to this route", 403));
 
     next();
 
