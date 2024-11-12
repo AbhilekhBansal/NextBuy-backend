@@ -40,7 +40,12 @@ export const reduceStock = async (orderItems) => {
     for (const order of orderItems) {
         const product = await Product.findById(order.productId);
         if (product) {
-            product.stock -= order.quantity;
+
+            if (has(product.sizes[order.size])) {
+                product.sizes[order.size] -= order.quantity;
+            } else {
+                product.stock -= order.quantity;
+            }
             await product.save();
         } else {
             throw new Error("Product not found");

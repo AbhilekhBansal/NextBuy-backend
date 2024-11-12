@@ -44,6 +44,7 @@ export const orderSchema = z.object({
             price: z.number(),
             quantity: z.number().int(),
             productId: z.string().min(1, "Product ID is required"),
+            size: z.string().optional(),
         })
     ).nonempty("Order items cannot be empty"),
 });

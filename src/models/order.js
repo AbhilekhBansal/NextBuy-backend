@@ -66,6 +66,7 @@ const schema = new mongoose.Schema({
             photo: String,
             price: Number,
             quantity: Number,
+            size: String,
             productId: {
                 type: mongoose.Types.ObjectId,
                 ref: "Product",

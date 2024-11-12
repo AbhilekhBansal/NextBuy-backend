@@ -14,9 +14,9 @@ export const newOrder = TryCatch(async (req, res, next) => {
         // validate order
         const validatedData = orderSchema.parse(req.body);
 
-        const { shippingInfo, orderItems, user, subtotal, tax, shippingCharges, discount, total } = validatedData;
+        const { shippingInfo, orderItems, user, subtotal, tax, shippingCharges, discount, total, size } = validatedData;
 
-        const order = await Order.create({ shippingInfo, orderItems, user, subtotal, tax, shippingCharges, discount, total });
+        const order = await Order.create({ shippingInfo, orderItems, user, subtotal, tax, shippingCharges, discount, total, size });
 
         await reduceStock(orderItems);
         invalidateCache({ product: true, order: true, admin: true, userId: user, productId: order.orderItems.map((i) => i.productId) });
