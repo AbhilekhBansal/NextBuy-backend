@@ -7,9 +7,9 @@ const app = express.Router();
 
 app.get("/discount", applyDiscount);
 
-app.post("/coupon/new", newCoupon);
-app.post("/coupon/all", allCoupon);
-app.post("/coupon/:id", deleteCoupon);
+app.get("/coupon/new", newCoupon);
+app.get("/coupon/all", allCoupon);
+app.get("/coupon/:id", deleteCoupon);
 
 
 export default app;
