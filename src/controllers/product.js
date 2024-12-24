@@ -322,7 +322,7 @@ export const getAllProduct = TryCatch(async (req, res, next) => {
 
     const { search, category, sort, price } = req.query;
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 8;
     const skip = Number(page - 1) * limit;
 
     const baseQuery = {};
@@ -340,7 +340,7 @@ export const getAllProduct = TryCatch(async (req, res, next) => {
         baseQuery.price = { $lt: parseFloat(price) };
     }
 
-    const productPromise = Product.find(baseQuery).sort(sort && { name: sort === "asc" ? 1 : -1 }).limit(limit).skip(skip);
+    const productPromise = Product.find(baseQuery).sort(sort && { price: sort === "asc" ? 1 : -1 }).limit(limit).skip(skip);
 
     const [products, filteredProducts] = await Promise.all([productPromise, Product.find(baseQuery)]);
 

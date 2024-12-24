@@ -42,5 +42,5 @@ app.use((req, res, next) => {
 app.use(errorMiddleware)
 
 app.listen(port, () => {
-    console.log("server is working in https://localhost:" + port);
+    console.log("server is working in http://localhost:" + port);
 })
