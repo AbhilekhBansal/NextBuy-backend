@@ -39,7 +39,7 @@ const schema = new mongoose.Schema({
     },
     dob: {
         type: Date,
-        required: [true, "Please enter date of birth"],
+        default: null
 
     },
 
